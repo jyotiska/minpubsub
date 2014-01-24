@@ -36,7 +36,7 @@ Retrieve number of messages available in the message queue::
 
     >> subscriber.getCount()
 
-Stop listening to a Topic::
+Stop listening to a Topic (not available for in-memory message queue) ::
 
     >> subscriber.closeTopic('<topic_name>')
 
