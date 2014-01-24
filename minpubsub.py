@@ -9,15 +9,21 @@ import time
 
 class MemorySubscriber:
 	def __init__(self):
+		''' Initializes the empty queue for a particular subscriber. '''
+		
 		self.messages = Queue()
 
 	def getNext(self):
+		''' Returns the next message available in the queue. Returns None if queue is empty. '''
+		
 		if self.messages.qsize() == 0:
 			return None
 		else:
 			return self.messages.get(block=False, timeout=None)
 
 	def getAll(self):
+		''' Get all the messages available in the queue, appends them in the 'item' list and returns the list. '''
+		
     		items = []
     		maxItemsToRetreive = self.messages.qsize()
 		for numOfItemsRetrieved in range(0, maxItemsToRetreive):
@@ -30,22 +36,34 @@ class MemorySubscriber:
     		return items
 
 	def getCount(self):
+		''' Returns the number of messages available in the queue. '''
+		
 		return self.messages.qsize()
 
 	def put(self, message):
+		''' Puts the message in the queue. '''
+		
 		self.messages.put_nowait(message)
 
 class MemoryPubSub:
+	''' This class is invoked when the user chooses to store the messages queues in the memory '''
+	
 	def __init__(self):
+		''' Intializes with no subscribers available '''
+		
 		self.subscribers = {}
 
 	def publish(self, topic, message):
+		''' When this method is invoked with a topic name and the message, it looks for all the subscribers for that particular topic and pushes the message to the subscribers. Returns the number of subscribers available. '''
+		
 		subscribers = self.subscribers.get(topic, [])
 		for each_subscriber in subscribers:
 			each_subscriber.put(message)
 		return "Published to " + str(len(subscribers)) + " subscribers"
 
 	def subscribe(self, *topics):
+		''' When this method is invoked with a list of topics, it creates a MemorySubscriber() object and for all the topics appends the object into the dictionary and returns the handle to the MemorySubscriber class. '''
+		
 		subscriber = MemorySubscriber()
 		for topic in topics:
 			subscribers = self.subscribers.setdefault(topic, [])
