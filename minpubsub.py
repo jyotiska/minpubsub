@@ -72,17 +72,23 @@ class MemoryPubSub:
 
 class SQLiteSubscriber:
 	def __init__(self, cursor, topics, timestamp):
+		''' Initializes empty queue and gets list of topics, SQLite cursor and timestamp. '''
+		
 		self.messages = Queue()
 		self.timestamp = timestamp
 		self.topics = list(topics)
 		self.cursor = cursor
 
 	def getNext(self):
+		''' Get the next message from the queue for given list of topics. '''
+		
+		# Get messages from the SQLite database using the subscriber's timestamp.
 		for topic in self.topics:
 			self.cursor.execute("SELECT message, timestamp from mps_messages WHERE topic=:topic and timestamp>:timestamp", {"topic": topic, "timestamp": self.timestamp})
 			data = self.cursor.fetchall()
 			for each_record in data:
 				self.messages.put_nowait(each_record[0])
+		# Update the timestamp
 		self.timestamp = datetime.utcnow()
 		if self.messages.qsize() == 0:
 			return None
@@ -90,14 +96,19 @@ class SQLiteSubscriber:
 			return self.messages.get(block=False, timeout=None)
 
 	def getAll(self):
+		''' Get all messages from the queue. '''
+		
+		# For given list of topics, get all the messages from the SQLite db using subscriber's timestamp
 		for topic in self.topics:
 			self.cursor.execute("SELECT message, timestamp from mps_messages WHERE topic=:topic and timestamp>:timestamp", {"topic": topic, "timestamp": self.timestamp})
 			data = self.cursor.fetchall()
 			for each_record in data:
 				self.messages.put_nowait(each_record[0])
+		# Update the timestamp
 		self.timestamp = datetime.utcnow()
     		items = []
     		maxItemsToRetreive = self.messages.qsize()
+    		# Put messages in the queue
 		for numOfItemsRetrieved in range(0, maxItemsToRetreive):
         		try:
             			if numOfItemsRetrieved == maxItemsToRetreive:
@@ -108,13 +119,18 @@ class SQLiteSubscriber:
     		return items
 
 	def getCount(self):
+		''' Returns number of available messages in the message queue. '''
+		
 		return self.messages.qsize()
 
 	def closeTopic(self, topic):
+		''' Stop listening to a topic by its name. '''
 		self.topics.remove(topic)
 
 class SQLitePubSub:
 	def __init__(self):
+		''' Intialize the package, db connectionn and the cursor. '''
+		
 		try:
 			import sqlite3
 		except ImportError:
@@ -126,10 +142,17 @@ class SQLitePubSub:
 		self.cursor.execute("CREATE TABLE IF NOT EXISTS mps_messages(topic VARCHAR(100), message VARCHAR(1000), timestamp VARCHAR(100))")
 
 	def publish(self, topic, message):
+		''' Publish a message for a topic and store it in db. '''
+		
+		# Sleep is to make different timestamp if too many messages come at once.
 		time.sleep(0.001)
 		self.cursor.execute("INSERT INTO mps_messages VALUES(:topic, :message, :timestamp)", {"topic": topic, "message": message, "timestamp": datetime.utcnow()})
 		self.connection.commit()
+		
 	def subscribe(self, *topics):
+		''' Subscribe to a list of topics. '''
+		
+		# Get the timestamp of subscription
 		timestamp = datetime.utcnow()
 		subscriber = SQLiteSubscriber(self.cursor, topics, timestamp)
 		return subscriber
