@@ -40,6 +40,8 @@ Stop listening to a Topic (not available for in-memory message queue) ::
 
     >> subscriber.closeTopic('<topic_name>')
 
+minpubsub is an experimental project and a work in progress. It is not yet ready to be used in production environment.
+
 Supported backends
 ---------------------
 
