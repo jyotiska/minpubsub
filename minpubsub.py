@@ -1,4 +1,4 @@
-import sys
+import sys, os
 try:
     from Queue import Queue
 except ImportError:
@@ -127,17 +127,21 @@ class SQLiteSubscriber:
         ''' Stop listening to a topic by its name. '''
         self.topics.remove(topic)
 
-class SQLitePubSub:
-    def __init__(self):
-        ''' Intialize the package, db connectionn and the cursor. '''
 
+class SQLitePubSub:
+    def __init__(self, directory=tempfile.gettempdir(), db_name='minpubsub_sqlite.db'):
+        ''' Intialize the package, db connectionn and the cursor. '''
         try:
             import sqlite3
         except ImportError:
             print "sqlite3 package could not be imported. Exiting."
             sys.exit(0)
-        tempdir = tempfile.gettempdir()
-        self.connection = sqlite3.connect(tempdir+'/minpubsub_sqlite.db')
+        if not os.path.isdir(directory):
+            raise ValueError('the given Path "', directory, '" is not a valid directory.')
+        if not db_name:
+            db_name='minpubsub_sqlite.db'
+
+        self.connection = sqlite3.connect(directory+'/'+db_name)
         self.cursor = self.connection.cursor()
         self.cursor.execute("CREATE TABLE IF NOT EXISTS mps_messages(topic VARCHAR(100), message VARCHAR(1000), timestamp VARCHAR(100))")
 
@@ -294,7 +298,7 @@ def create(name, *argv):
         handler = MemoryPubSub()
         return handler
     elif name == 'sqlite':
-        handler = SQLitePubSub()
+        handler = SQLitePubSub(*argv)
         return handler
     elif name == 'mysql':
         handler = MySQLPubSub(*argv)
@@ -305,4 +309,3 @@ def create(name, *argv):
     else:
         print "Option not found! Exiting."
         sys.exit(0)
-
