@@ -23,7 +23,7 @@ def read(fname):
 
 setup(
     name='minpubsub',
-    version='0.2',
+    version='0.2.1',
     description="A minimal PubSub messaging model with multiple persistence options - SQLite, MySQL, MongoDB",
     long_description=read('README.rst'),
     classifiers=[

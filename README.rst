@@ -12,6 +12,7 @@ Create a pubsub object::
     >> from minpubsub import create
     >> pubsub = create('memory') # for in-memory message queue
     >> pubsub = create('sqlite') # for sqlite based message queue
+    >> pubsub = create('sqlite', '<directory>', '<db_name>') # for sqlite based message queue, you can optionally also specify a directory and the database name
     >> pubsub = create('mysql', '<host>', '<username>', '<password>', '<schema>') # for mysql based message queue
     >> pubsub = create('mongodb', '<host>', '<port>') # for mongodb based message queue
 
